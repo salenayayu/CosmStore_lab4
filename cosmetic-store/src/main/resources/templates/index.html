@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Управление товарами</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f5f5f5;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #333;
+        }
+        .header {
+            background: white;
+            padding: 20px 0;
+            border-bottom: 1px solid #e0e0e0;
+            margin-bottom: 30px;
+        }
+        .table-container {
+            background: white;
+            border-radius: 4px;
+            padding: 0;
+            margin-bottom: 30px;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            border: 1px solid #e0e0e0;
+        }
+        .table-header {
+            padding: 20px;
+            border-bottom: 1px solid #e0e0e0;
+            background: #fafafa;
+        }
+        .table-title {
+            color: #333;
+            margin: 0;
+            font-size: 18px;
+            font-weight: 500;
+        }
+        .table {
+            margin: 0;
+            border: none;
+        }
+        .table th {
+            background-color: #f8f9fa;
+            border-bottom: 2px solid #e0e0e0;
+            font-weight: 500;
+            color: #666;
+            padding: 12px 16px;
+            font-size: 14px;
+        }
+        .table td {
+            padding: 12px 16px;
+            border-bottom: 1px solid #e0e0e0;
+            vertical-align: middle;
+            font-size: 14px;
+        }
+        .table tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .form-container {
+            background-color: #fafafa;
+            padding: 20px;
+            border-top: 1px solid #e0e0e0;
+        }
+        .btn-outline {
+            border: 1px solid #ddd;
+            background: white;
+            color: #333;
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+        .btn-outline:hover {
+            background: #f8f9fa;
+            border-color: #ccc;
+        }
+        .btn-action {
+            border: 1px solid #007bff;
+            background: white;
+            color: #007bff;
+            padding: 4px 10px;
+            font-size: 12px;
+            margin-right: 5px;
+        }
+        .btn-action:hover {
+            background: #007bff;
+            color: white;
+        }
+        .btn-delete {
+            border: 1px solid #dc3545;
+            background: white;
+            color: #dc3545;
+            padding: 4px 10px;
+            font-size: 12px;
+        }
+        .btn-delete:hover {
+            background: #dc3545;
+            color: white;
+        }
+        .form-control {
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            padding: 6px 10px;
+            font-size: 14px;
+        }
+        .form-control:focus {
+            border-color: #007bff;
+            box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+        }
+        .form-label {
+            font-size: 13px;
+            font-weight: 500;
+            color: #666;
+            margin-bottom: 4px;
+        }
+        .form-row {
+            margin-bottom: 12px;
+        }
+        .modal-header {
+            background: #fafafa;
+            border-bottom: 1px solid #e0e0e0;
+            padding: 16px 20px;
+        }
+        .modal-title {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .modal-body {
+            padding: 20px;
+        }
+        .modal-footer {
+            border-top: 1px solid #e0e0e0;
+            padding: 16px 20px;
+        }
+        .action-buttons {
+            white-space: nowrap;
+        }
+        .price {
+            font-weight: 500;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <div class="container">
+        <h1 style="margin: 0; font-size: 24px; font-weight: 400; color: #333;">Управление товарами</h1>
+    </div>
+</div>
+
+<div class="container">
+    <!-- Products Table -->
+    <div class="table-container">
+        <div class="table-header d-flex justify-content-between align-items-center">
+            <h2 class="table-title">Товары</h2>
+            <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                Добавить товар
+            </button>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Цена</th>
+                <th>Кол-во</th>
+                <th>Бренд</th>
+                <th>Категория</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="product : ${products}">
+                <td th:text="${product.id}"></td>
+                <td th:text="${product.name}"></td>
+                <td class="price" th:text="${#numbers.formatDecimal(product.price, 1, 2)} + ' ₽'"></td>
+                <td th:text="${product.quantity}"></td>
+                <td th:text="${product.brand?.name}"></td>
+                <td th:text="${product.category?.name}"></td>
+                <td class="action-buttons">
+                    <button type="button" class="btn btn-action edit-product-btn"
+                            th:data-id="${product.id}"
+                            th:data-name="${product.name}"
+                            th:data-description="${product.description}"
+                            th:data-price="${product.price}"
+                            th:data-quantity="${product.quantity}"
+                            th:data-brand-id="${product.brand?.id}"
+                            th:data-category-id="${product.category?.id}">
+                        Редактировать
+                    </button>
+                    <a th:href="@{/products/delete/{id}(id=${product.id})}" class="btn btn-delete"
+                       onclick="return confirm('Удалить товар?')">Удалить</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Brands Table -->
+    <div class="table-container">
+        <div class="table-header d-flex justify-content-between align-items-center">
+            <h2 class="table-title">Бренды</h2>
+            <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#addBrandModal">
+                Добавить бренд
+            </button>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Страна</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="brand : ${brands}">
+                <td th:text="${brand.id}"></td>
+                <td th:text="${brand.name}"></td>
+                <td th:text="${brand.description}"></td>
+                <td th:text="${brand.country}"></td>
+                <td class="action-buttons">
+                    <button type="button" class="btn btn-action edit-brand-btn"
+                            th:data-id="${brand.id}"
+                            th:data-name="${brand.name}"
+                            th:data-description="${brand.description}"
+                            th:data-country="${brand.country}">
+                        Редактировать
+                    </button>
+                    <a th:href="@{/brands/delete/{id}(id=${brand.id})}" class="btn btn-delete"
+                       onclick="return confirm('Удалить бренд?')">Удалить</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Categories Table -->
+    <div class="table-container">
+        <div class="table-header d-flex justify-content-between align-items-center">
+            <h2 class="table-title">Категории</h2>
+            <button type="button" class="btn btn-outline" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+                Добавить категорию
+            </button>
+        </div>
+        <table class="table">
+            <thead>
+            <tr>
+                <th>ID</th>
+                <th>Название</th>
+                <th>Описание</th>
+                <th>Действия</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="category : ${categories}">
+                <td th:text="${category.id}"></td>
+                <td th:text="${category.name}"></td>
+                <td th:text="${category.description}"></td>
+                <td class="action-buttons">
+                    <button type="button" class="btn btn-action edit-category-btn"
+                            th:data-id="${category.id}"
+                            th:data-name="${category.name}"
+                            th:data-description="${category.description}">
+                        Редактировать
+                    </button>
+                    <a th:href="@{/categories/delete/{id}(id=${category.id})}" class="btn btn-delete"
+                       onclick="return confirm('Удалить категорию?')">Удалить</a>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Модальные окна остаются без изменений по функциональности, но с обновленным дизайном -->
+
+<!-- Модальное окно добавления товара -->
+<div class="modal fade" id="addProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить товар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/products/save" method="post">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <label class="form-label">Название:</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Описание:</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Цена:</label>
+                                <input type="number" name="price" class="form-control" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Количество:</label>
+                                <input type="number" name="quantity" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Бренд:</label>
+                                <select name="brandId" class="form-control" required>
+                                    <option value="">Выберите бренд</option>
+                                    <option th:each="brand : ${brands}"
+                                            th:value="${brand.id}"
+                                            th:text="${brand.name}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Категория:</label>
+                                <select name="categoryId" class="form-control" required>
+                                    <option value="">Выберите категорию</option>
+                                    <option th:each="category : ${categories}"
+                                            th:value="${category.id}"
+                                            th:text="${category.name}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования товара -->
+<div class="modal fade" id="editProductModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать товар</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/products/update" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editProductId" name="id">
+                    <div class="form-row">
+                        <label class="form-label">Название:</label>
+                        <input type="text" id="editProductName" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Описание:</label>
+                        <textarea id="editProductDescription" name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Цена:</label>
+                                <input type="number" id="editProductPrice" name="price" class="form-control" step="0.01" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Количество:</label>
+                                <input type="number" id="editProductQuantity" name="quantity" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Бренд:</label>
+                                <select id="editProductBrand" name="brandId" class="form-control" required>
+                                    <option value="">Выберите бренд</option>
+                                    <option th:each="brand : ${brands}"
+                                            th:value="${brand.id}"
+                                            th:text="${brand.name}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-row">
+                                <label class="form-label">Категория:</label>
+                                <select id="editProductCategory" name="categoryId" class="form-control" required>
+                                    <option value="">Выберите категорию</option>
+                                    <option th:each="category : ${categories}"
+                                            th:value="${category.id}"
+                                            th:text="${category.name}">
+                                    </option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления бренда -->
+<div class="modal fade" id="addBrandModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить бренд</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/brands/save" method="post">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <label class="form-label">Название:</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Описание:</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Страна:</label>
+                        <input type="text" name="country" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования бренда -->
+<div class="modal fade" id="editBrandModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать бренд</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/brands/update" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editBrandId" name="id">
+                    <div class="form-row">
+                        <label class="form-label">Название:</label>
+                        <input type="text" id="editBrandName" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Описание:</label>
+                        <textarea id="editBrandDescription" name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Страна:</label>
+                        <input type="text" id="editBrandCountry" name="country" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно добавления категории -->
+<div class="modal fade" id="addCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Добавить категорию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/categories/save" method="post">
+                <div class="modal-body">
+                    <div class="form-row">
+                        <label class="form-label">Название:</label>
+                        <input type="text" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Описание:</label>
+                        <textarea name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактирования категории -->
+<div class="modal fade" id="editCategoryModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Редактировать категорию</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/categories/update" method="post">
+                <div class="modal-body">
+                    <input type="hidden" id="editCategoryId" name="id">
+                    <div class="form-row">
+                        <label class="form-label">Название:</label>
+                        <input type="text" id="editCategoryName" name="name" class="form-control" required>
+                    </div>
+                    <div class="form-row">
+                        <label class="form-label">Описание:</label>
+                        <textarea id="editCategoryDescription" name="description" class="form-control" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" data-bs-dismiss="modal">Отмена</button>
+                    <button type="submit" class="btn btn-action">Сохранить</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Обработчики для редактирования товаров
+    document.addEventListener('DOMContentLoaded', function() {
+        // Товары
+        document.querySelectorAll('.edit-product-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const description = this.getAttribute('data-description') || '';
+                const price = this.getAttribute('data-price');
+                const quantity = this.getAttribute('data-quantity');
+                const brandId = this.getAttribute('data-brand-id');
+                const categoryId = this.getAttribute('data-category-id');
+
+                document.getElementById('editProductId').value = id;
+                document.getElementById('editProductName').value = name;
+                document.getElementById('editProductDescription').value = description;
+                document.getElementById('editProductPrice').value = price;
+                document.getElementById('editProductQuantity').value = quantity;
+
+                if (brandId && brandId !== 'null') {
+                    document.getElementById('editProductBrand').value = brandId;
+                } else {
+                    document.getElementById('editProductBrand').value = '';
+                }
+
+                if (categoryId && categoryId !== 'null') {
+                    document.getElementById('editProductCategory').value = categoryId;
+                } else {
+                    document.getElementById('editProductCategory').value = '';
+                }
+
+                new bootstrap.Modal(document.getElementById('editProductModal')).show();
+            });
+        });
+
+        // Бренды
+        document.querySelectorAll('.edit-brand-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const description = this.getAttribute('data-description') || '';
+                const country = this.getAttribute('data-country') || '';
+
+                document.getElementById('editBrandId').value = id;
+                document.getElementById('editBrandName').value = name;
+                document.getElementById('editBrandDescription').value = description;
+                document.getElementById('editBrandCountry').value = country;
+
+                new bootstrap.Modal(document.getElementById('editBrandModal')).show();
+            });
+        });
+
+        // Категории
+        document.querySelectorAll('.edit-category-btn').forEach(button => {
+            button.addEventListener('click', function() {
+                const id = this.getAttribute('data-id');
+                const name = this.getAttribute('data-name');
+                const description = this.getAttribute('data-description') || '';
+
+                document.getElementById('editCategoryId').value = id;
+                document.getElementById('editCategoryName').value = name;
+                document.getElementById('editCategoryDescription').value = description;
+
+                new bootstrap.Modal(document.getElementById('editCategoryModal')).show();
+            });
+        });
+    });
+</script>
+</body>
+</html>
