@@ -39,6 +39,11 @@ public class MainController {
         return "index";
     }
 
+    @GetMapping("/api-view")
+    public String apiView() {
+        return "redirect:/api/products?format=xml";
+    }
+
     // сохранение продукта
     @PostMapping("/products/save")
     public String saveProduct(@RequestParam String name,

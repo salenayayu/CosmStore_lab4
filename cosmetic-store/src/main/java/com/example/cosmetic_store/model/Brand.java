@@ -1,25 +1,35 @@
 package com.example.cosmetic_store.model;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
+import jakarta.xml.bind.annotation.*;
 
 @Entity
 @Table(name = "brand")
+@XmlRootElement(name = "brand")
+@XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Brand {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @XmlAttribute
     private Long id;
 
     @Column(name = "name", nullable = false, unique = true, length = 100)
+    @XmlElement
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
+    @XmlElement
     private String description;
 
     @Column(name = "country", length = 50)
+    @XmlElement
     private String country;
 
     // конструкторы
     public Brand() {}
+    
     public Brand(String name, String description, String country) {
         this.name = name;
         this.description = description;

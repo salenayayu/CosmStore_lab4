@@ -1,32 +1,46 @@
 package com.example.cosmetic_store.model;
+
+import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.*;
+import jakarta.xml.bind.annotation.*;
+
 import java.math.BigDecimal;
 
 @Entity
 @Table(name = "product")
+@XmlRootElement(name = "product")
+@XmlAccessorType(XmlAccessType.FIELD)
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @XmlAttribute
     private Long id;
 
     @Column(name = "name", nullable = false, length = 200)
+    @XmlElement
     private String name;
 
     @Column(name = "description", columnDefinition = "TEXT")
+    @XmlElement
     private String description;
 
     @Column(name = "price", nullable = false, precision = 10, scale = 2)
+    @XmlElement
     private BigDecimal price;
 
     @Column(name = "quantity", nullable = false)
+    @XmlElement
     private Integer quantity = 0;
 
     @ManyToOne
     @JoinColumn(name = "brand_id")
+    @XmlElement
     private Brand brand;
 
     @ManyToOne
     @JoinColumn(name = "category_id")
+    @XmlElement
     private Category category;
 
     // конструкторы
