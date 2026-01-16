@@ -29,7 +29,11 @@ public class NotificationMessageListener {
     @Value("${notification.low-stock-threshold:10}")
     private int stockThreshold;
     
-    @JmsListener(destination = "notification.queue")
+    @JmsListener(destination = "store.events.topic",
+                subscription = "notification-subscription",
+                containerFactory = "jmsListenerContainerFactory",
+                selector = "_type = 'notificationEvent'")
+                
     public void process(NotificationEvent event) {
         if (event == null || event.getAuditEvent() == null) return;
         

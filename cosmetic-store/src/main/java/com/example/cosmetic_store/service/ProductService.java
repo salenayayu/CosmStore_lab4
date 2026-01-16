@@ -12,10 +12,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class ProductService {
 
-    @Autowired
-    private ProductRepository productRepository;
+    private final ProductRepository productRepository;
+    private final AuditService auditService;
+    private final ObjectMapper objectMapper;
 
     public List<Product> findAll() {
         return productRepository.findAll();
@@ -25,24 +27,7 @@ public class ProductService {
         return productRepository.findById(id);
     }
 
-    public Product save(Product product) {
-        return productRepository.save(product);
-    }
-
-    public void deleteById(Long id) {
-        productRepository.deleteById(id);
-    }
-}
-
-@Service
-@RequiredArgsConstructor
-public class ProductService {
-    
-    private final ProductRepository productRepository;
-    private final AuditService auditService;
-    private final ObjectMapper objectMapper;
-    
-    @Transactional
+     @Transactional
     public Product createProduct(Product product) {
         Product savedProduct = productRepository.save(product);
         
@@ -56,7 +41,7 @@ public class ProductService {
         
         return savedProduct;
     }
-    
+
     @Transactional
     public Product updateProduct(Long id, Product productDetails) {
         Product existingProduct = productRepository.findById(id)
@@ -85,7 +70,7 @@ public class ProductService {
         
         return updatedProduct;
     }
-    
+
     @Transactional
     public void deleteProduct(Long id) {
         Product product = productRepository.findById(id)
@@ -100,5 +85,13 @@ public class ProductService {
             id,
             "Deleted product: " + productInfo
         );
+    }
+    
+    public Product save(Product product) {
+        return productRepository.save(product);
+    }
+
+    public void deleteById(Long id) {
+        productRepository.deleteById(id);
     }
 }

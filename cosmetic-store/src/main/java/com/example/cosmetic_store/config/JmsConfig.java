@@ -1,5 +1,8 @@
 package com.example.cosmetic_store.config;
 
+import com.example.cosmetic_store.model.AuditEvent;
+import com.example.cosmetic_store.model.NotificationEvent;
+import jakarta.jms.Topic;
 import jakarta.jms.ConnectionFactory;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.springframework.context.annotation.Bean;
@@ -10,6 +13,7 @@ import org.springframework.jms.core.JmsTemplate;
 import org.springframework.jms.support.converter.MappingJackson2MessageConverter;
 import org.springframework.jms.support.converter.MessageConverter;
 import org.springframework.jms.support.converter.MessageType;
+
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,11 +32,17 @@ public class JmsConfig {
     }
     
     @Bean
+    public Topic storeEventsTopic() {
+        return new ActiveMQTopic("store.events.topic");
+    }
+
+    @Bean
     public JmsTemplate jmsTemplate() {
         JmsTemplate template = new JmsTemplate();
         template.setConnectionFactory(connectionFactory());
         // преобразование объекта в jms сообщение
         template.setMessageConverter(jacksonJmsMessageConverter());
+        template.setPubSubDomain(true);
         return template;
     }
     
@@ -43,6 +53,8 @@ public class JmsConfig {
         factory.setConnectionFactory(connectionFactory());
         factory.setMessageConverter(jacksonJmsMessageConverter());
         factory.setConcurrency("1-1");
+        // топик для слушателей
+        factory.setPubSubDomain(true);
         return factory;
     }
     

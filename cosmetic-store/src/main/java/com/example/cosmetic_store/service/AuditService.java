@@ -26,6 +26,6 @@ public class AuditService {
         event.setTimestamp(LocalDateTime.now());
         event.setPerformedBy("SYSTEM");
         
-        jmsTemplate.convertAndSend("audit.queue", event);
+        jmsTemplate.convertAndSend("store.events.topic", event);
     }
 }

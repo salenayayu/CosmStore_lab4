@@ -22,7 +22,10 @@ public class AuditMessageListener {
     private final AuditLogRepository auditLogRepository;
     private final JmsTemplate jmsTemplate; 
     
-    @JmsListener(destination = "audit.queue")
+    @JmsListener(destination = "store.events.topic",
+                subscription = "audit-subscription",
+                containerFactory = "jmsListenerContainerFactory",
+                selector = "_type = 'auditEvent'")
     @Transactional
     public void receiveAuditEvent(AuditEvent event) {
         log.info("Received audit event: {}", event);
@@ -40,7 +43,7 @@ public class AuditMessageListener {
             log.info("Audit log saved successfully for entity: {}", event.getEntityName());
             
             // отправка события для проверки условий уведомлений
-            sendToNotificationQueue(event);
+            sendToNotificationTopic(event);
             
         } catch (Exception e) {
             log.error("Failed to process audit event: {}", e.getMessage(), e);
@@ -48,16 +51,16 @@ public class AuditMessageListener {
         }
     }
     
-    private void sendToNotificationQueue(AuditEvent event) {
+    private void sendToNotificationTopic(AuditEvent event) {
         try {
             // уведомление на основе события аудита
             NotificationEvent notificationEvent = createNotificationEvent(event);
-            jmsTemplate.convertAndSend("notification.queue", notificationEvent);
-            log.debug("Audit event forwarded to notification queue. Entity: {}", 
+            jmsTemplate.convertAndSend("store.events.topic", notificationEvent);
+            log.debug("Audit event forwarded to notification topic. Entity: {}", 
                     event.getEntityName());
             
         } catch (Exception e) {
-            log.warn("Failed to send audit event to notification queue. Entity: {}, Error: {}", 
+            log.warn("Failed to send audit event to notification topic. Entity: {}, Error: {}", 
                     event.getEntityName(), e.getMessage());
         }
     }
